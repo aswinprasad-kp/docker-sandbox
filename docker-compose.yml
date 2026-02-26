@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # 1 - Database service
+  postgres-db:
+    image: postgres:15-alpine
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    # --- Persist data in a named volume ---
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - internal-net
+
+  # 2 - Backend service
+  api-backend:
+    build: ./backend
+    env_file:
+      - .env
+    depends_on:
+      - postgres-db
+    networks:
+      - internal-net
+  
+  # 3 - Frontend service
+  web-frontend:
+    build: ./frontend
+    ports:
+      - "80:80"   # Standard HTTP port
+      - "443:443" # Secure HTTPS port
+    volumes:
+      # Copies local certs folder into the Nginx container for SSL configuration
+      - ./certs:/etc/nginx/certs
+    depends_on:
+      - api-backend
+    networks:
+      - internal-net
+  
+networks:
+  internal-net:
+    driver: bridge
+
+volumes:
+  pg_data:

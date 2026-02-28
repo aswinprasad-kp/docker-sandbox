@@ -70,6 +70,20 @@ services:
       - "50051:50051" # gRPC port
     networks:
       - internal-net
+
+  # 6 - Authentication Service
+  auth-service:
+    build:
+      context: . # Must be root context so it can see the 'shared' folder!
+      dockerfile: ./auth-service/Dockerfile
+    ports:
+      - "8081:8081"
+    env_file:
+      - .env
+    depends_on:
+      - postgres-db
+    networks:
+      - internal-net
   
 networks:
   internal-net:
